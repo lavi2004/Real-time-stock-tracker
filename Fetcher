@@ -1,0 +1,19 @@
+import os, json, requests
+from google.cloud import pubsub_v1
+from flask import Flask, request, jsonify
+from datetime import datetime
+
+app = Flask(__name__)
+publisher = pubsub_v1.PublisherClient()
+topic_path = publisher.topic_path(os.getenv("GCP_PROJECT"), "stock-prices")
+
+@app.route("/", methods=["GET"])
+def fetch_stock():
+    symbols = request.args.get("symbols", "AAPL,GOOGL").split(",")
+    results = []
+    for symbol in symbols:
+        price = round(100 + (hash(symbol) % 50), 2)  # fake price for demo
+        data = {"symbol": symbol, "price": price, "timestamp": datetime.utcnow().isoformat()}
+        publisher.publish(topic_path, json.dumps(data).encode("utf-8"))
+        results.append(data)
+    return jsonify({"published": results})
