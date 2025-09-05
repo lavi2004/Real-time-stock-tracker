@@ -1,0 +1,11 @@
+cd ~
+git clone https://github.com/lavi2004/Real-time-stock-tracker.git
+cd Real-time-stock-tracker
+export GCP_PROJECT="your-gcp-project-id"
+export GCP_REGION="us-central1"
+export STOCK_API_KEY="your_stock_api_key_here"      # AlphaVantage/Polygon/your provider
+export DEFAULT_SYMBOLS="AAPL,GOOGL,MSFT"
+export ALERT_EMAIL_TO="your.email@example.com"
+export ALERT_EMAIL_FROM="alerts@yourdomain.com"
+export SMTP_USERNAME="smtp_username"
+export SMTP_PASSWORD="smtp_password"
