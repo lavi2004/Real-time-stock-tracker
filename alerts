@@ -1,0 +1,33 @@
+import base64, json, os, smtplib
+from google.cloud import firestore
+from email.mime.text import MIMEText
+
+db = firestore.Client()
+
+def alerts(event, context):
+    message = base64.b64decode(event["data"]).decode("utf-8")
+    data = json.loads(message)
+    symbol, price = data["symbol"], float(data["price"])
+
+    doc = db.collection("alert_configs").document(symbol).get()
+    if not doc.exists:
+        return
+
+    config = doc.to_dict()
+    upper, lower = config.get("upper"), config.get("lower")
+
+    if (upper and price > upper) or (lower and price < lower):
+        send_email(symbol, price, upper, lower)
+
+def send_email(symbol, price, upper, lower):
+    sender = os.getenv("ALERT_EMAIL_FROM")
+    recipient = os.getenv("ALERT_EMAIL_TO")
+    subject = f"Stock Alert: {symbol}"
+    body = f"{symbol} is at {price} (limits: {lower}-{upper})"
+    msg = MIMEText(body)
+    msg["Subject"], msg["From"], msg["To"] = subject, sender, recipient
+
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.starttls()
+        server.login(os.getenv("SMTP_USERNAME"), os.getenv("SMTP_PASSWORD"))
+        server.sendmail(sender, recipient, msg.as_string())
