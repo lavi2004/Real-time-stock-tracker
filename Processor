@@ -1,0 +1,22 @@
+import base64, json, os
+from google.cloud import firestore, bigquery
+
+db = firestore.Client()
+bq = bigquery.Client()
+table_id = f"{os.getenv('GCP_PROJECT')}.stock_data.prices"
+
+def process_message(event, context):
+    if "data" not in event:
+        return
+    message = base64.b64decode(event["data"]).decode("utf-8")
+    data = json.loads(message)
+
+    # Firestore
+    db.collection("stocks").document(data["symbol"]).set(data)
+
+    # BigQuery
+    errors = bq.insert_rows_json(table_id, [data])
+    if errors:
+        print("BigQuery errors:", errors)
+    else:
+        print("Saved:", data)
