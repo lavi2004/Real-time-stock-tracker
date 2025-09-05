@@ -18,14 +18,10 @@ Built on **Google Cloud Platform (GCP)** using Pub/Sub, Cloud Functions, Firesto
 ## 📂 Project Structure
 
 Real-time-stock-tracker/ │── bigquery/        # BigQuery schema + setup │── dashboard/       # Cloud Run dashboard (Flask/Streamlit) │   └── app.py │── fetcher/         # Stock data fetcher (Cloud Function) │── processor/       # Data processor (Cloud Function) │── alerts/          # Email alerts function │── gcp/             # Deployment scripts & configs │── .env             # Environment variables (not committed) │── requirements.txt # Dependencies │── README.md
---
+-
 
-### 1️⃣ Clone the Repository
-```bash
-git clone https://github.com/lavi2004/Real-time-stock-tracker.git
-cd Real-time-stock-tracker
 
-## 🚀 Deployment
+### 🚀 Deployment 
 
 ### 1. Setup Google Cloud Project
 ```bash
@@ -68,3 +64,10 @@ gcloud run deploy stock-dashboard \
   --allow-unauthenticated
 gcloud pubsub topics publish stock-prices --message '{"symbol":"AAPL","price":175}'
 sh deploy.sh
+
+
+### 1️⃣ Clone the Repository
+```bash
+git clone https://github.com/lavi2004/Real-time-stock-tracker.git
+cd Real-time-stock-tracker
+-----
