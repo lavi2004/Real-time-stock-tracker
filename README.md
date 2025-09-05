@@ -24,3 +24,47 @@ Real-time-stock-tracker/ │── bigquery/        # BigQuery schema + setup �
 ```bash
 git clone https://github.com/lavi2004/Real-time-stock-tracker.git
 cd Real-time-stock-tracker
+## 🚀 Deployment
+
+### 1. Setup Google Cloud Project
+```bash
+gcloud auth login
+gcloud config set project <YOUR_PROJECT_ID>
+
+gcloud services enable pubsub.googleapis.com \
+    cloudfunctions.googleapis.com \
+    run.googleapis.com \
+    firestore.googleapis.com \
+    bigquery.googleapis.com
+cd fetcher
+gcloud functions deploy fetch_stock_data \
+  --runtime python310 \
+  --trigger-topic stock-prices \
+  --entry-point fetch_data \
+  --env-vars-file ../.env.yaml \
+  --region us-central1
+cd processor
+gcloud functions deploy process_stock_data \
+  --runtime python310 \
+  --trigger-topic processed-prices \
+  --entry-point process_data \
+  --env-vars-file ../.env.yaml \
+  --region us-central1
+cd alerts
+gcloud functions deploy send_alerts \
+  --runtime python310 \
+  --trigger-topic alerts \
+  --entry-point send_alert \
+  --env-vars-file ../.env.yaml \
+  --region us-central1
+bq mk --dataset stock_data
+bq mk --table stock_data.prices bigquery/schema.json
+cd dashboard
+gcloud builds submit --tag gcr.io/<YOUR_PROJECT_ID>/stock-dashboard
+gcloud run deploy stock-dashboard \
+  --image gcr.io/<YOUR_PROJECT_ID>/stock-dashboard \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated
+gcloud pubsub topics publish stock-prices --message '{"symbol":"AAPL","price":175}'
+deploy.sh
