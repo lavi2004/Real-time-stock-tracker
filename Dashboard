@@ -1,0 +1,24 @@
+from flask import Flask, jsonify
+from google.cloud import firestore, bigquery
+
+app = Flask(__name__)
+db = firestore.Client()
+bq = bigquery.Client()
+
+@app.route("/api/latest")
+def latest():
+    docs = db.collection("stocks").stream()
+    return jsonify({doc.id: doc.to_dict() for doc in docs})
+
+@app.route("/api/trend/<symbol>")
+def trend(symbol):
+    query = f"""
+        SELECT timestamp, price FROM `{bq.project}.stock_data.prices`
+        WHERE symbol = @symbol
+        ORDER BY timestamp DESC
+        LIMIT 20
+    """
+    job = bq.query(query, job_config=bigquery.QueryJobConfig(
+        query_parameters=[bigquery.ScalarQueryParameter("symbol", "STRING", symbol)]
+    ))
+    return jsonify([dict(r) for r in job])
